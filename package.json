@@ -1,0 +1,30 @@
+{
+  "name": "d3-annotate",
+  "version": "0.0.1",
+  "description": "Interactively and programmatically add, edit, move and save SVG chart annotations",
+  "keywords": [
+    "d3",
+    "d3-module",
+    "svg",
+    "data-vis"
+  ],
+  "license": "BSD-3-Clause",
+  "main": "build/d3-annotate.js",
+  "jsnext:main": "index",
+  "homepage": "https://github.com/cmpolis/d3-annotate",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cmpolis/d3-annotate.git"
+  },
+  "scripts": {
+    "pretest": "rm -rf build && mkdir build && rollup -f umd -n d3 -o build/d3-annotate.js -- index.js",
+    "test": "tape 'test/**/*-test.js'",
+    "prepublish": "npm run test && uglifyjs build/d3-annotate.js -c -m -o build/d3-annotate.min.js",
+    "postpublish": "zip -j build/d3-annotate.zip -- LICENSE README.md build/d3-annotate.js build/d3-annotate.min.js"
+  },
+  "devDependencies": {
+    "rollup": "0.27",
+    "tape": "4",
+    "uglify-js": "2"
+  }
+}
