@@ -138,9 +138,7 @@ d3.tsv("./iris.tsv", function(error, data) {
   // annotations
   var annotationG = svg.append('g'),
       annotation = window.annotation = d3.annotate()
-        // .show(true)
-        .show(false)
-        // .show((d) => d.species !== "versicolor")
+        .show(false) // .show((d) => d.species !== "versicolor")
         .text((d) => `${d.species}: ${d.sepalWidth.toFixed(1)} x ${d.sepalLength.toFixed(1)}`)
         .container(annotationG);
 

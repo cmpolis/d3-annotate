@@ -5,10 +5,9 @@ export default function() {
   var keyFn = (_, ndx) => ndx,
       textFn = (d) => d,
       container,
-      dx = 0, dy = 0,
-      x = (d) => d.pos.x + (d.pos.width / 2),
-      y = (d) => d.pos.y + (d.pos.height / 2),
-      textAnchor = 'start',
+      x = (d) => d.box.x + (d.box.width / 2),
+      y = (d) => d.box.y + (d.box.height / 2),
+      textAnchor = 'middle',
       show = true,
       dragControl = drag()
         .on("start", function() { this.classList.add('dragging'); })
@@ -22,7 +21,6 @@ export default function() {
   //
   // serialize keys, bind click to add text, add text if `show` is T or fn
   function annotate(selection) {
-    container.classed('d3-an-container', true);
     selection.nodes().forEach((el, ndx) => el.__key__ = keyFn(el.__data__, ndx));
     selection.on('click', function() { appendText(select(this)); });
     if(show) { appendText(selection, true); }
@@ -32,14 +30,9 @@ export default function() {
   // add new data bound <text> annotation
   function appendText(sel, filter) {
     var _sel = (show instanceof Function && filter) ? sel.filter(show) : sel,
-        _keyFn = (d) => keyFn(d.data),
         _textFn = (d) => textFn(d.data),
-        annotationData = _sel.nodes().map((node, ndx) => {
-          return {
-            data: node.__data__,
-            key: node.__key__,
-            pos: node.getBBox()
-          };
+        annotationData = _sel.nodes().map((node) => {
+          return { data: node.__data__, key: node.__key__, box: node.getBBox() };
         });
 
     var textSelection = container.selectAll('text.with-data')
@@ -48,7 +41,6 @@ export default function() {
       .text(_textFn)
       .attr('class', 'annotation with-data')
       .attr('x', x).attr('y', y)
-      .attr('dx', dx).attr('dy', dy)
       .attr('text-anchor', textAnchor)
       .call(dragControl)
       .on('click', function() {
@@ -57,26 +49,6 @@ export default function() {
       });
   }
 
-  //
-  // properties
-  annotate.container = function() {
-    if(arguments.length) {
-      container = arguments[0];
-      return annotate;
-    } else { return container; }
-  };
-  annotate.text = function() {
-    if(arguments.length) {
-      textFn = arguments[0];
-      return annotate;
-    } else { return textFn; }
-  };
-  annotate.show = function() {
-    if(arguments.length) {
-      show = arguments[0];
-      return annotate;
-    } else { return show; }
-  };
 
   //
   // text editor
@@ -106,6 +78,40 @@ export default function() {
 
   //
   // TODO: add annotations from object
+
+
+  //
+  // properties
+  annotate.container = function(_) {
+    if(!arguments.length) return container;
+    container = _;
+    container.classed('d3-an-container', true);
+    return annotate;
+  };
+  annotate.text = function(_) {
+    if(!arguments.length) return text;
+    textFn = _; return annotate;
+  };
+  annotate.key = function(_) {
+    if(!arguments.length) return keyFn;
+    keyFn = _; return annotate;
+  };
+  annotate.show = function(_) {
+    if(!arguments.length) return show;
+    show = _; return annotate;
+  };
+  annotate.textAnchor = function(_) {
+    if(!arguments.length) return textAnchor;
+    textAnchor = _; return annotate;
+  };
+  annotate.x = function(_) {
+    if(!arguments.length) return x;
+    x = _; return annotate;
+  };
+  annotate.y = function(_) {
+    if(!arguments.length) return y;
+    y = _; return annotate;
+  };
 
   return annotate;
 };
