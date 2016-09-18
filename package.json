@@ -4,7 +4,7 @@
     "name": "Chris Polis",
     "url": "https://twitter.com/ChrisPolis"
   },
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Interactively and programmatically add, edit, move and save SVG chart annotations",
   "keywords": [
     "d3",
