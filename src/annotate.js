@@ -1,13 +1,20 @@
 import {drag} from "d3-drag";
-import {event, select} from "d3-selection";
+import {event, select, selection} from "d3-selection";
+
+// hacky :( could not get rollup to play nice with d3-selection-multi. << TODO
+// import "d3-selection-multi";
+import selection_attrs from "./attrs";
+selection.prototype.attrs = selection_attrs;
 
 export default function() {
   var keyFn = (_, ndx) => ndx,
       textFn = (d) => d,
       container,
-      x = (d) => d.box.x + (d.box.width / 2),
-      y = (d) => d.box.y + (d.box.height / 2),
-      textAnchor = 'middle',
+      displayAttrs = {
+        x: (d) => d.box.x + (d.box.width / 2),
+        y: (d) => d.box.y + (d.box.height / 2),
+        'text-anchor': 'middle'
+      },
       show = true,
       dragControl = drag()
         .on("start", function() { this.classList.add('dragging'); })
@@ -18,12 +25,13 @@ export default function() {
           el.attr('y', +el.attr('y') + event.dy);
         });
 
+
   //
   // serialize keys, bind click to add text, add text if `show` is T or fn
-  function annotate(selection) {
-    selection.nodes().forEach((el, ndx) => el.__key__ = keyFn(el.__data__, ndx));
-    selection.on('click', function() { appendText(select(this)); });
-    if(show) { appendText(selection, true); }
+  function annotate(_selection) {
+    _selection.nodes().forEach((el, ndx) => el.__key__ = keyFn(el.__data__, ndx));
+    _selection.on('click', function() { appendText(select(this)); });
+    if(show) { appendText(_selection, true); }
   }
 
   //
@@ -40,8 +48,7 @@ export default function() {
     textSelection.enter().append('text')
       .text(_textFn)
       .attr('class', 'annotation with-data')
-      .attr('x', x).attr('y', y)
-      .attr('text-anchor', textAnchor)
+      .attrs(displayAttrs)
       .call(dragControl)
       .on('click', function() {
         if(event.metaKey) { this.remove(); }
@@ -100,17 +107,16 @@ export default function() {
     if(!arguments.length) return show;
     show = _; return annotate;
   };
-  annotate.textAnchor = function(_) {
-    if(!arguments.length) return textAnchor;
-    textAnchor = _; return annotate;
-  };
-  annotate.x = function(_) {
-    if(!arguments.length) return x;
-    x = _; return annotate;
-  };
-  annotate.y = function(_) {
-    if(!arguments.length) return y;
-    y = _; return annotate;
+  annotate.attr = function() {
+    if(!arguments.length) {
+      return displayAttrs;
+    } else if(arguments.length === 1) {
+      return displayAttrs[arguments[0]];
+    } else {
+      arguments[1] === null ? (delete displayAttrs[arguments[0]]) :
+                              (displayAttrs[arguments[0]] = arguments[1]);
+      return annotate;
+    }
   };
 
   return annotate;

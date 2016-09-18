@@ -23,14 +23,15 @@
     "url": "https://github.com/cmpolis/d3-annotate.git"
   },
   "scripts": {
-    "pretest": "rm -rf build && mkdir build && rollup -g d3-drag:d3,d3-selection:d3 -f umd -n d3 -o build/d3-annotate.js -- index.js",
+    "pretest": "rm -rf build && mkdir build && rollup -g d3-drag:d3,d3-selection:d3,d3-selection-multi:d3 -f umd -n d3 -o build/d3-annotate.js -- index.js",
     "test": "tape 'test/**/*-test.js'",
     "prepublish": "npm run test && ./node_modules/.bin/babel build/d3-annotate.js -o build/d3-annotate-es5.js && uglifyjs build/d3-annotate-es5.js -c -m -o build/d3-annotate.min.js",
     "postpublish": "zip -j build/d3-annotate.zip -- LICENSE README.md build/d3-annotate.js build/d3-annotate.min.js"
   },
   "dependencies": {
     "d3-drag": "1.0",
-    "d3-selection": "1.0"
+    "d3-selection": "1.0",
+    "d3-selection-multi": "1.0"
   },
   "devDependencies": {
     "babel-cli": "^6.14.0",

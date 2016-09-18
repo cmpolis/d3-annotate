@@ -140,6 +140,8 @@ d3.tsv("./iris.tsv", function(error, data) {
       annotation = window.annotation = d3.annotate()
         .show(false) // .show((d) => d.species !== "versicolor")
         .text((d) => `${d.species}: ${d.sepalWidth.toFixed(1)} x ${d.sepalLength.toFixed(1)}`)
+        .attr('text-anchor', 'start')
+        .attr('dx', 4)
         .container(annotationG);
 
   svg.selectAll('.dot').call(annotation);
