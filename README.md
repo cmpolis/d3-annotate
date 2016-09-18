@@ -10,15 +10,17 @@ If you use NPM, `npm install d3-annotate`. Otherwise, download the [latest relea
 
 ```js
 var annotation = d3.annoate()
+  .container(svg.append('g'))
   .key((d) => d.id) // if annotation will be applied to data selection
   .text((d) => `${d.name}: ${d.score}`)
   .show((d) => d.score > 100); // can be true, false or fn
   // TODO: .dx(), .dy(), .canWrite, .canMove, .canDelete
 
-annotation.editMode(true); // enable controls, false by default
+// TODO
+annotation.editMode(true); // enable controls, true by default
 
 var bubbles = d3.selectAll('circle').data(teams, (d) => d.id);
 bubbles.enter().append('circle').....
 
-bubbles.call(annotation());
+bubbles.call(annotation);
 ```
