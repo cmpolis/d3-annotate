@@ -9,7 +9,13 @@ selection.prototype.attrs = selection_attrs;
 export default function() {
   var keyFn = (_, ndx) => ndx,
       textFn = (d) => d,
+      getKey = (d) => d.key,
       container,
+      saved,
+      mapAnnotationData = (node) => {
+        return { data: node.__data__,
+                 key: node.__key__,
+                 box: node.getBBox() }; },
       displayAttrs = {
         x: (d) => d.box.x + (d.box.width / 2),
         y: (d) => d.box.y + (d.box.height / 2),
@@ -25,29 +31,26 @@ export default function() {
           el.attr('y', +el.attr('y') + event.dy);
         });
 
-
   //
-  // serialize keys, bind click to add text, add text if `show` is T or fn
+  // svg.selectAll('.city').call(annotation) ->
   function annotate(_selection) {
-    _selection.nodes().forEach((el, ndx) => el.__key__ = keyFn(el.__data__, ndx));
+
+    // serialize keys for saving/joining
+    _selection.nodes().forEach((el, ndx) => {
+      el.__key__ = keyFn(el.__data__, ndx).toString() });
+
+    // click selection el to create annotation
     _selection.on('click', function() { appendText(select(this)); });
+
+    // prepopulate and/or add saved annotations
     if(show) { appendText(_selection, true); }
+    if(saved) { appendTextFromData(_selection, saved); }
   }
 
   //
-  // add new data bound <text> annotation
-  function appendText(sel, filter) {
-    var _sel = (show instanceof Function && filter) ? sel.filter(show) : sel,
-        _textFn = (d) => textFn(d.data),
-        annotationData = _sel.nodes().map((node) => {
-          return { data: node.__data__, key: node.__key__, box: node.getBBox() };
-        });
-
-    var textSelection = container.selectAll('text.with-data')
-      .data(annotationData, (d) => d.key);
-    textSelection.enter().append('text')
-      .text(_textFn)
-      .attr('class', 'annotation with-data')
+  //
+  function buildAnnotation(sel) {
+    sel.attr('class', 'annotation with-data')
       .attrs(displayAttrs)
       .call(dragControl)
       .on('click', function() {
@@ -56,6 +59,31 @@ export default function() {
       });
   }
 
+  //
+  // add new data bound <text> annotation
+  function appendText(sel, filter) {
+    var _sel = (show instanceof Function && filter) ? sel.filter(show) : sel,
+        _textFn = (d) => textFn(d.data),
+        annotationData = _sel.nodes().map(mapAnnotationData);
+
+    var textSel = container.selectAll('text.with-data').data(annotationData, getKey);
+    textSel.enter().append('text')
+      .text(_textFn)
+      .call(buildAnnotation);
+  }
+  function appendTextFromData(sel) {
+    var savedKeys = Object.keys(saved),
+        savedNodes = sel.filter(function() {
+          return savedKeys.indexOf(this.__key__) !== -1; }),
+        savedData = savedNodes.nodes().map(mapAnnotationData);
+
+    var savedSel= container.selectAll('text.with-data').data(savedData, getKey);
+    savedSel.enter().append('text').call(buildAnnotation)
+      .merge(savedSel)
+        .text((d) => saved[d.key].text)
+        .attr('x', (d) => saved[d.key].x)
+        .attr('y', (d) => saved[d.key].y);
+  }
 
   //
   // text editor
@@ -72,20 +100,17 @@ export default function() {
   //
   // return serialize pojo of annotations
   annotate.serialize = function() {
-    return container.selectAll('text.with-data').nodes().map(function(node) {
-      var nodeSel = d3.select(node);
-      return {
-        x: nodeSel.attr('x'),
-        y: nodeSel.attr('y'),
-        key: node.__data__.key,
-        text: nodeSel.text()
+    var annotations = {};
+    container.selectAll('text.with-data').each(function() {
+      var sel = d3.select(this);
+      annotations[this.__data__.key] = {
+        x: sel.attr('x'),
+        y: sel.attr('y'),
+        text: sel.text()
       };
     });
-  }
-
-  //
-  // TODO: add annotations from object
-
+    return annotations;
+  };
 
   //
   // properties
@@ -93,6 +118,14 @@ export default function() {
     if(!arguments.length) return container;
     container = _;
     container.classed('d3-an-container', true);
+    return annotate;
+  };
+
+  // TODO:
+  //  - handle Array for dataless annotation
+  //  - joining multiple .saved() calls
+  annotate.saved = function(_) {
+    saved = _;
     return annotate;
   };
   annotate.text = function(_) {
@@ -107,14 +140,14 @@ export default function() {
     if(!arguments.length) return show;
     show = _; return annotate;
   };
-  annotate.attr = function() {
-    if(!arguments.length) {
+  annotate.attr = function(attrName) {
+    if(!attrName) {
       return displayAttrs;
     } else if(arguments.length === 1) {
-      return displayAttrs[arguments[0]];
+      return displayAttrs[attrName];
     } else {
-      arguments[1] === null ? (delete displayAttrs[arguments[0]]) :
-                              (displayAttrs[arguments[0]] = arguments[1]);
+      arguments[1] === null ? (delete displayAttrs[attrName]) :
+                              (displayAttrs[attrName] = arguments[1]);
       return annotate;
     }
   };

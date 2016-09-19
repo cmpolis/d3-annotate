@@ -136,15 +136,17 @@ d3.tsv("./iris.tsv", function(error, data) {
 
   //
   // annotations
-  var annotationG = svg.append('g'),
-      annotation = window.annotation = d3.annotate()
+  var savedAnnotations = {"15":{"x":"871","y":"248.75","text":"Right"},"33":{"x":"825","y":"301.25","text":"setosa: 4.2 x 5.5"},"60":{"x":"3","y":"331.5","text":"Left"},"109":{"x":"575","y":"82","text":"test 2"},"125":{"x":"450","y":"90","text":"virginica: 3.2 x 7.2"}};
+  var annotation = window.annotation = d3.annotate()
         .show(false) // .show((d) => d.species !== "versicolor")
         .text((d) => `${d.species}: ${d.sepalWidth.toFixed(1)} x ${d.sepalLength.toFixed(1)}`)
         .attr('text-anchor', 'start')
         .attr('dx', 4)
-        .container(annotationG);
+        .saved(savedAnnotations)
+        .container(svg.append('g'));
 
   svg.selectAll('.dot').call(annotation);
+
 });
 
 </script>
