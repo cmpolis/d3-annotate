@@ -52,6 +52,10 @@ Sets the default text for an annotation. _eg:_ ``.text((d) => `${d.name}: ${d.sc
 .attr('fill', (d) => palette(d.data.category))
 ```
 
+#### `.show([boolean or function])`
+
+Create annotations automatically(`true` will create an annotation for every datum)
+
 #### `.saved([annotation object])`
 
 Add object of annotations to be rendered on `.call(annotation)`, created from calling `annotation.serialize()`
@@ -71,6 +75,7 @@ var annotation = d3.annotate()
       .continer(chartArea.append('g'))
       .key((d) => d.model + d.year)
       .text((d) => `${d.make} ${d.model}: ${d.mpg} miles per gallon`)
+      .show((d) => d.year === 2016) // create annotations only for 2016 models, initially
       .saved({'prius2015':{text:'Most efficient',x:400,y:600}})
       .attr('fill', (d) => makeColors(d.data.make));
 
